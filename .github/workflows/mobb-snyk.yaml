@@ -25,32 +25,43 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Java (required for SonarScanner)
         uses: actions/setup-java@v3
         with:
+          distribution: 'temurin'
           java-version: '17' # Or '11', depending on your project
 
       - name: Run SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master
+        uses: SonarSource/sonarqube-scan-action@v5.1.0
         with:
           projectBaseDir: ./
+          args: >
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}  # Remove this line if using on-prem
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Download SonarQube findings (SARIF)
+      - name: Download SonarQube findings
         run: |
-          curl -s -u "${{ secrets.SONAR_TOKEN }}:" \
-            "${{ secrets.SONAR_HOST_URL }}/api/issues/search?componentKeys=<your_project_key>&resolved=false&types=CODE_SMELL,VULNERABILITY,BUG" \
-            -o /home/runner/report.json
+            curl -s -u "${{ secrets.SONAR_TOKEN }}:" \
+            "${{ secrets.SONAR_HOST_URL }}/api/issues/search?organization=${{ secrets.SONAR_ORGANIZATION }}&projects=${{ secrets.SONAR_PROJECT_KEY }}&pullRequest=${{ github.event.pull_request.number }}&additionalFields=_all" \
+            -o sonar_report.json
+
+      - name: Archive report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sast-report
+          path: sonar_report.json
 
       - name: Run Mobb on the findings and get fixes
         if: always()
         uses: mobb-dev/action/review@v1.1
         with:
-          report-file: "/home/runner/report.json"
+          report-file: "sonar_report.json"
           api-key: ${{ secrets.MOBB_API_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           scanner: sonarqube
