@@ -6,6 +6,7 @@ import {testFunc} from "./stringSanitize";
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
+// Here is an XSS
 const unsafe_var1 = urlParams.get('var1');
 const unsafe_var2 = urlParams.get('var2');
 const unsafe_div = window.document.getElementById("vulnerableDiv")!;
