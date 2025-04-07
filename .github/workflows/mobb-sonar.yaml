@@ -63,7 +63,8 @@ jobs:
 
       - name: Download SonarQube findings using script
         run: |
-          python3 .github/scripts/sonarqube_download_report.py
+          pip install requests
+          python .github/scripts/sonarqube_download_report.py
         env:
           SONARQUBE_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONARQUBE_TOKEN: ${{ secrets.SONAR_TOKEN }}
