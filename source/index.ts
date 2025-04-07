@@ -13,7 +13,7 @@ const unsafe_div = window.document.getElementById("vulnerableDiv")!;
 if (unsafe_var1){
     const unsafe_html1 = '<b>' + unsafe_var1 + '</b>';
     document.write(unsafe_var1)
-    document.writeln('<b>' + unsafe_var1 + '</b>')
+    document.writeln(DOMPurify.sanitize('<b>' + unsafe_var1 + '</b>'))
     document.write(testFunc(unsafe_html1))
     
 } 
