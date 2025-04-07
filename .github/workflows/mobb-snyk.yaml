@@ -25,15 +25,16 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Java (required for SonarScanner)
         uses: actions/setup-java@v3
         with:
+          distribution: 'temurin'
           java-version: '17' # Or '11', depending on your project
 
       - name: Run SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master
+        uses: SonarSource/sonarqube-scan-action@v5.1.0
         with:
           projectBaseDir: ./
         env:
