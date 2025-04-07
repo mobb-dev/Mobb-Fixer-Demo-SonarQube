@@ -15,7 +15,7 @@ if (unsafe_var1){
     const unsafe_html1 = '<b>' + unsafe_var1 + '</b>';
     document.write(DOMPurify.sanitize(unsafe_var1))
     document.writeln('<b>' + unsafe_var1 + '</b>')
-    document.write(testFunc(unsafe_html1))
+    document.write(DOMPurify.sanitize(testFunc(unsafe_html1)))
     
 } 
 if (unsafe_var2){
