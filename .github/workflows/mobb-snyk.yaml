@@ -44,10 +44,10 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Download SonarQube findings (SARIF)
+      - name: Download SonarQube findings
         run: |
           curl -s -u "${{ secrets.SONAR_TOKEN }}:" \
-            "${{ secrets.SONAR_HOST_URL }}/api/issues/search?componentKeys=<your_project_key>&resolved=false&types=CODE_SMELL,VULNERABILITY,BUG" \
+            "${{ secrets.SONAR_HOST_URL }}/api/issues/search?componentKeys=${{ secrets.SONAR_PROJECT_KEY }}&resolved=false&types=CODE_SMELL,VULNERABILITY,BUG" \
             -o /home/runner/report.json
 
       - name: Run Mobb on the findings and get fixes
