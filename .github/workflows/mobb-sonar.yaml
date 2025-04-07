@@ -73,13 +73,6 @@ jobs:
           PULL_REQUEST_ID: ${{ github.event.pull_request.number }}
           REPORT_PATH: sonar_report.json
 
-      - name: Archive report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sast-report
-          path: sonar_report.json
-
       - name: Run Mobb on the findings and get fixes
         if: always()
         uses: mobb-dev/action/review@v1.1
