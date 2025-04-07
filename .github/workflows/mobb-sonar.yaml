@@ -1,12 +1,24 @@
-# Mobb/SonarQube Fixer on pull requests
-# This workflow defines the needed steps to run SonarQube Code scan on every pull request and pass the results to Mobb Fixer.
+# Mobb/SonarQube Fixer on Pull Requests
 #
-# Secrets in use (add your missing ones):
-# SONAR_TOKEN - your SonarQube user token (create it in your SonarQube or SonarCloud account)
-# SONAR_HOST_URL - the URL of your SonarQube server (e.g., https://sonarcloud.io)
-# MOBB_API_TOKEN - your Mobb user credentials (automatically set if you forked this repo via the Mobb app)
-# GITHUB_TOKEN - automatically set by GitHub
-
+# This GitHub Actions workflow scans every pull request with SonarQube (or SonarCloud),
+# downloads the SAST (static analysis) findings, and passes them to Mobb for automated remediation suggestions.
+#
+# ✅ Supported on both SonarCloud and SonarQube on-premise
+#
+# ➕ Requirements:
+# - Your project must already be set up in SonarQube/SonarCloud.
+# - A GitHub repository using pull requests for change submission.
+#
+# 🔐 Secrets required:
+# - SONAR_TOKEN:       A SonarQube user token (generate from your user profile in SonarCloud or SonarQube)
+# - SONAR_HOST_URL:    Your SonarQube server URL (e.g., https://sonarcloud.io or http://your-sonarqube-server)
+# - SONAR_ORGANIZATION: Your SonarCloud organization key (use `none` if using on-prem SonarQube)
+# - SONAR_PROJECT_KEY: Your SonarQube project key
+# - MOBB_API_TOKEN:    Your Mobb API key (generated at https://app.mobb.ai)
+# - GITHUB_TOKEN:      Automatically provided by GitHub (do not override this)
+#
+# 📂 File layout:
+# - `.github/scripts/sonarqube_download_report.py`: Python script to download the SonarQube PR scan results
 
 name: "Mobb/SonarQube"
 
@@ -31,7 +43,12 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17' # Or '11', depending on your project
+          java-version: '17'
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
       - name: Run SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5.1.0
@@ -39,16 +56,21 @@ jobs:
           projectBaseDir: ./
           args: >
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}  # Remove this line if using on-prem
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Download SonarQube findings
+      - name: Download SonarQube findings using script
         run: |
-            curl -s -u "${{ secrets.SONAR_TOKEN }}:" \
-            "${{ secrets.SONAR_HOST_URL }}/api/issues/search?organization=${{ secrets.SONAR_ORGANIZATION }}&projects=${{ secrets.SONAR_PROJECT_KEY }}&pullRequest=${{ github.event.pull_request.number }}&additionalFields=_all" \
-            -o sonar_report.json
+          python3 .github/scripts/sonarqube_download_report.py
+        env:
+          SONARQUBE_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONARQUBE_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONARQUBE_ORG: ${{ secrets.SONAR_ORGANIZATION }}
+          SONARQUBE_PROJECT: ${{ secrets.SONAR_PROJECT_KEY }}
+          PULL_REQUEST_ID: ${{ github.event.pull_request.number }}
+          REPORT_PATH: sonar_report.json
 
       - name: Archive report
         if: always()
