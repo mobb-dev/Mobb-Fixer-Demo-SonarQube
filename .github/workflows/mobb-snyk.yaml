@@ -46,10 +46,10 @@ jobs:
 
       - name: Download SonarQube findings
         run: |
-          curl -s -u "${{ secrets.SONAR_TOKEN }}:" \
-            "${{ secrets.SONAR_HOST_URL }}/api/issues/search?componentKeys=${{ secrets.SONAR_PROJECT_KEY }}&resolved=false&types=CODE_SMELL,VULNERABILITY,BUG" \
+            curl -s -u "${{ secrets.SONAR_TOKEN }}:" \
+            "${{ secrets.SONAR_HOST_URL }}/api/issues/search?organization=${{ secrets.SONAR_ORGANIZATION }}&projects=${{ secrets.SONAR_PROJECT_KEY }}&pullRequest=${{ github.event.pull_request.number }}&additionalFields=_all" \
             -o sonar_report.json
-    
+
       - name: Archive report
         if: always()
         uses: actions/upload-artifact@v4
